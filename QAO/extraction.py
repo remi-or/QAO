@@ -1,4 +1,4 @@
-import pickle
+import json
 from typing import Dict, Tuple
 import pandas as pd
 
@@ -64,13 +64,6 @@ def extract_objectives(
 def get_number_of_logged_keys(
     log_filepath : str,
 ) -> int:
-    number_of_logged_keys = 0
-    running = True
-    with open(log_filepath, 'rb') as file:
-        while True:
-            try:
-                x = pickle.load(file)
-                number_of_logged_keys += len(x)
-            except EOFError:
-                break
-    return number_of_logged_keys
+    with open(log_filepath, 'r') as file:
+        scores_accumulator = json.load(file)
+    return len(scores_accumulator)

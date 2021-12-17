@@ -2,7 +2,7 @@ from typing import List, Dict, Tuple
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from tqdm.auto import tqdm
-import pickle
+import json
 from os.path import exists
 
 from QAO.extraction import get_number_of_logged_keys
@@ -25,6 +25,7 @@ def score_qa_objective_couples(
     batch_size : int = 16,
     tokenizer_name : str = 'camembert-base',
     objective_first : bool = True,
+    save_freq : int = 100,
     ) -> None:
     """
     Scores every qa objectives couples described by (tokenized_qa_couples) and (tokenized_objectives).
@@ -40,19 +41,30 @@ def score_qa_objective_couples(
     model = AutoModelForSequenceClassification.from_pretrained(model_name)
     model.cuda()
     model.eval()
-    # File reading mode and first key
-    mode = 'ab' if exists(log_filepath) else 'wb'
+    # First key
     keys_to_skip = get_number_of_logged_keys(log_filepath) if exists(log_filepath) else 0
+    if exists(log_filepath):
+        with open(log_filepath, 'r') as file: 
+            scores_accumulator = json.load(file)
+    else:
+        scores_accumulator = []
     # Main loop
-    with torch.no_grad(), open(log_filepath, mode) as log_file:
+    with torch.no_grad():
         iterator = tokenized_qao_iterator(tokenized_qa_couples, tokenized_objectives, batch_size, tokenizer_name, objective_first, keys_to_skip)
         total = get_number_of_batches(tokenized_qa_couples, tokenized_objectives, batch_size, keys_to_skip)
+        tick = 0
         for inputs in tqdm(iterator, total=total):
             # Input formatting
             inputs = pad_and_tensorize(inputs, padding, max_length, to_cuda=True)
             # Prediction
             logits = model(*inputs).logits
             # Processing
-            scores = logits.softmax(1)[:, 1]
+            scores = logits.softmax(1)
             # Logging
-            pickle.dump(scores, log_file)
+            for score in scores[:, 1]:
+                scores_accumulator.append(score.item())
+            tick += 1
+            if tick == save_freq:
+                log_file, tick = open(log_filepath, 'w'), 0
+                json.dump(scores_accumulator, log_file)
+                log_file.close()
