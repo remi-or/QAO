@@ -31,9 +31,10 @@ def score_qa_objective_couples(
     Scores every qa objectives couples described by (tokenized_qa_couples) and (tokenized_objectives).
     The scoring is done by a sentence classifier model like CamemBERT with the name (model_name).
     Saves the result in a .txt file pointed to by (log_filepath).
-    Yields batches of (batch_size)
+    Yields batches of (batch_size) and trims input to (max_length).
     Uses the special tokens that a tokenizer with (tokenizer_name) would to form the coupled inputs.
     If the (objective_first) flag is set to True, the objective goes into the question slot.
+    The resulting scores for each qa_couple / objective couple is saved every (save_freq) batch.
     """
     # Get the padding token
     padding = AutoTokenizer.from_pretrained(tokenizer_name).pad_token_id

@@ -16,6 +16,14 @@ def associate_keys_and_two_best(
     tokenized_objectives : Dict[str, Tokens],
     log_filepath : str,
 ) -> Dict[QaKey, Tuple[ScoredId, ScoredId]]:
+    """
+    Given a (log_filepath) pointing to the log of a finished run of QAO.score's [score_qa_objective_couples],
+    a dictionnary of (tokenized_qa_couples) like the one returned by QAO.tokenization's [tokenize_qa_couples],
+    a dictionnary of (tokenized_objectives) like the one returned by QAO.tokenazition's [tokenized_objectives],
+    returns a dictionnary containing for each qa_couple the best and second best objective associated with it.
+    The returned dictionnary represents each qa_couple by its qa_key (question_id, answer_id),
+    and each objective by its objective_id and the associated score.
+    """
     # Retrieve the scores
     with open(log_filepath) as file:
         scores = json.load(file)

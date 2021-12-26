@@ -16,9 +16,15 @@ def key_qao_iterator(
     tokenized_objectives : Dict[str, Tokens],
     keys_to_skip : int = 0,
 ) -> QaoKey:
+    """
+    Given a dictionnary of (tokenized_qa_couples) like the one returned by QAO.tokenization's [tokenize_qa_couples]
+      and a dictionnary of (tokenized_objectives) like the one returned by QAO.tokenazition's [tokenized_objectives],
+    returns every QaoKey corresponding to a qa_couple / objective pair.
+    The iterator can skip a given number of (keys_to_skip).    
+    """
     iterator = product(tokenized_qa_couples.keys(), tokenized_objectives.keys())
     for i in range(keys_to_skip):
-        _= next(iterator)
+        _ = next(iterator)
     return iterator
 
 
@@ -32,8 +38,10 @@ def tokenized_qao_iterator(
     ) -> List[Tokens]:
     """
     Iterates over every couple of qa and objectives described by (tokenized_qa_couples) and (tokenized_objectives) and returns the formatted input.
-    Yields batches of (batch_size)
+    Yields batches of (batch_size).
     Uses the special tokens that a tokenizer with (tokenizer_name) would to form the coupled inputs.
+    If the (objective_first) flag is passed, then the objective will be placed as the question for the QA model.
+    You can specify a number of (keys_to_skip).
     """
     # Get the special tokens
     special_tokens = retrieve_special_tokens(tokenizer_name)
@@ -64,6 +72,13 @@ def get_number_of_batches(
     batch_size : int = 16,
     keys_to_skip : int = 0,
 ) -> int:
+    """
+    Given a dictionnary of (tokenized_qa_couples) like the one returned by QAO.tokenization's [tokenize_qa_couples]
+      and a dictionnary of (tokenized_objectives) like the one returned by QAO.tokenazition's [tokenized_objectives],
+      and a (batch_size) like the one used in [tokenized_qao_iterator],
+    returns the number of batches [tokenized_qao_iterator] will yield as an int.
+    Also takes into account the eventual number of (keys_to_skip).
+    """
     total_size = 0
     for _ in key_qao_iterator(tokenized_qa_couples, tokenized_objectives, keys_to_skip):
         total_size += 1
