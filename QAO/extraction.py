@@ -31,6 +31,7 @@ def extract_qa_couples(
     question_id_column : str = 'question_id',
     answer_column : str = 'answer',
     answer_id_column : str = 'answer_id',
+    source_column : str = 'source',
 ) -> DataFrame:
     """
     Extracts the question-answers couples from a .csv file pointed to by (filepath).
@@ -39,13 +40,15 @@ def extract_qa_couples(
         (question_id_column) for the questions' id
         (answer_column) for the answers' text
         (answer_id_column) for the answers' id
-    Returns a DataFrame with standardized 3 columns, question, answer and key, where key = (question_id, answer_id).
+        (source_column) for the question's source
+    Returns a DataFrame with standardized 4 columns, question, answer, key, where key = (question_id, answer_id), and source.
     """
     # We're going to rename the relevant column
     rename_dict = {
         question_column : 'question',
         answer_column : 'answer',
         'key' : 'key',
+        source_column : 'source',
     }
     # Load the dataframe
     dataframe = load_dataframe(filepath)
@@ -84,3 +87,27 @@ def get_number_of_logged_keys(
     with open(log_filepath, 'r') as file:
         scores_accumulator = json.load(file)
     return len(scores_accumulator)
+
+
+def extract_source_to_document(
+    filepath : str,
+    source_column : str = 'source',
+    document_column : str = 'document',
+) -> Dict[str, str]:
+    """
+    Loads a source to document dictionnary saved in a .csv file pointed to by (filepath).
+    The sources are in the column named (source_column) and same goes for document in (document_column).
+    """
+    return {row[source_column] : row[document_column] for _, row in load_dataframe(filepath).iterrows()}
+
+
+def extract_document_to_days(
+    filepath : str,
+    document_column : str = 'document',
+    day_column : str = 'day',
+) -> Dict[str, str]:
+    """
+    Converts a documents dataframe located at (filepath) to a dictionnary.
+    The documents are stored in (document_column) and days stored in (day_column).
+    """
+    return {row[document_column] : row[day_column] for _, row in load_dataframe(filepath).iterrows()}

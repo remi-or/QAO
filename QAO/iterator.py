@@ -10,10 +10,25 @@ QaKey = Tuple[int, int]
 QaoKey = Tuple[QaKey, str]
 
 
+def key_qao_iterator_auxiliary(
+    tokenized_qa_couples : Dict[QaKey, Tokens],
+    tokenized_objectives : Dict[str, Tokens],
+    qakey_to_day : Optional[Dict[QaKey, str]],
+) -> QaoKey:
+    if qakey_to_day is None:
+        for tokenized_couple in product(tokenized_qa_couples.values(), tokenized_objectives.values()):
+            yield tokenized_couple
+    else:
+        for qakey, tokenized_qa in tokenized_qa_couples.items():
+            day = qakey_to_day[qakey]
+            for obj_id, tokenized_obj in tokenized_objectives.items():
+                if obj_id.startswith(day):
+                    yield tokenized_qa, tokenized_obj
 
 def key_qao_iterator(
     tokenized_qa_couples : Dict[QaKey, Tokens],
     tokenized_objectives : Dict[str, Tokens],
+    qakey_to_day : Optional[Dict[QaKey, str]] = None,
     keys_to_skip : int = 0,
 ) -> QaoKey:
     """
@@ -22,7 +37,7 @@ def key_qao_iterator(
     returns every QaoKey corresponding to a qa_couple / objective pair.
     The iterator can skip a given number of (keys_to_skip).    
     """
-    iterator = product(tokenized_qa_couples.keys(), tokenized_objectives.keys())
+    iterator = key_qao_iterator_auxiliary(tokenized_qa_couples, tokenized_objectives, qakey_to_day)
     for i in range(keys_to_skip):
         _ = next(iterator)
     return iterator

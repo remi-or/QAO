@@ -33,3 +33,14 @@ def full_format_data(
         full_dataframe.loc[i, ['aux PO', 'aux PO id', 'aux PO score']] = [objectives[aux[0]], aux[0], aux[1]]
     # Drop the key column and return
     return full_dataframe.drop(columns=['key'])
+
+
+def format_qa_source_into_qakey_to_day(
+    qa_dataframe : DataFrame,
+    source_to_document_dic : Dict[str, str],
+    document_to_day_dic : Dict[str, str],
+) -> Dict[QaKey, str]:
+    return {
+        row['key'] : (document_to_day_dic[source_to_document_dic[row['source']]] if (source_to_document_dic[row['source']] != 'X') else '')
+        for _, row in qa_dataframe.iterrows()
+    }
