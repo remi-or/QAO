@@ -7,7 +7,7 @@ from os.path import exists
 
 from QAO.extraction import get_number_of_logged_keys
 from QAO.iterator import get_number_of_batches, tokenized_qao_iterator
-from QAO.misc import pad_and_tensorize
+from QAO.misc import Tensor, pad_and_tensorize
 
 
 
@@ -53,12 +53,13 @@ def score_qa_objective_couples(
     with torch.no_grad():
         iterator = tokenized_qao_iterator(tokenized_qa_couples, tokenized_objectives, batch_size, tokenizer_name, objective_first, keys_to_skip)
         total = get_number_of_batches(tokenized_qa_couples, tokenized_objectives, batch_size, keys_to_skip)
+        inputs = []
+        for non_tensorized_inputs in tqdm(iterator, total=total, desc='Padding and tensorizing...'):
+            inputs.append(pad_and_tensorize(non_tensorized_inputs, padding, max_length, to_cuda=False))
         tick = 0
-        for inputs in tqdm(iterator, total=total):
-            # Input formatting
-            inputs = pad_and_tensorize(inputs, padding, max_length, to_cuda=True)
+        for input in tqdm(inputs, desc='Prediciting...'):
             # Prediction
-            logits = model(*inputs).logits
+            logits = model(input[0].to('cuda'), input[1].to('cuda')).logits
             # Processing
             scores = logits.softmax(1)
             # Logging

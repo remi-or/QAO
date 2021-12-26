@@ -16,7 +16,7 @@ def key_qao_iterator_auxiliary(
     qakey_to_day : Optional[Dict[QaKey, str]],
 ) -> QaoKey:
     if qakey_to_day is None:
-        for tokenized_couple in product(tokenized_qa_couples.values(), tokenized_objectives.values()):
+        for tokenized_couple in product(tokenized_qa_couples.keys(), tokenized_objectives.keys()):
             yield tokenized_couple
     else:
         for qakey, tokenized_qa in tokenized_qa_couples.items():
@@ -68,7 +68,7 @@ def tokenized_qao_iterator(
     # Accumulators for the main loop
     current_batch_inputs, current_batch_size = [], 0 
     # Main loop
-    for qa_key, objective_id in key_qao_iterator(tokenized_qa_couples, tokenized_objectives, keys_to_skip):
+    for qa_key, objective_id in key_qao_iterator(tokenized_qa_couples, tokenized_objectives, keys_to_skip=keys_to_skip):
         # Add the values to the accumulators
         current_batch_inputs.append(format_input(tokenized_qa_couples[qa_key], tokenized_objectives[objective_id]))
         current_batch_size += 1
@@ -95,6 +95,6 @@ def get_number_of_batches(
     Also takes into account the eventual number of (keys_to_skip).
     """
     total_size = 0
-    for _ in key_qao_iterator(tokenized_qa_couples, tokenized_objectives, keys_to_skip):
+    for _ in key_qao_iterator(tokenized_qa_couples, tokenized_objectives, keys_to_skip=keys_to_skip):
         total_size += 1
     return (total_size // batch_size) + int(total_size % batch_size != 0)
