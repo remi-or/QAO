@@ -70,3 +70,6 @@ def score_qa_objective_couples(
                 log_file, tick = open(log_filepath, 'w'), 0
                 json.dump(scores_accumulator, log_file)
                 log_file.close()
+        log_file = open(log_filepath, 'w')
+        json.dump(scores_accumulator, log_file)
+        log_file.close()
